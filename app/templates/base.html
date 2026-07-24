@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">B</span>
+        <span class="brand-name">Videocore</span>
+      </div>
+      <nav class="nav">
+        <a href="/dashboard/overview" class="nav-link {{ 'active' if active == 'overview' }}">
+          <span class="nav-dot"></span>Overview
+        </a>
+        <a href="/dashboard/myfiles" class="nav-link {{ 'active' if active == 'myfiles' }}">
+          <span class="nav-dot"></span>My Files
+        </a>
+        <a href="/dashboard/settings" class="nav-link {{ 'active' if active == 'settings' }}">
+          <span class="nav-dot"></span>Settings
+        </a>
+      </nav>
+      <a href="/dashboard/logout" class="logout-link">Log out</a>
+    </aside>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <h1>Overview</h1>
+    <p class="muted">Pipeline health at a glance.</p>
+  </header>
+
+  <section class="stat-grid" id="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label">Total videos</span>
+      <span class="stat-value" id="stat-total-videos">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Storage used</span>
+      <span class="stat-value" id="stat-storage">—</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Total views</span>
+      <span class="stat-value" id="stat-views">—</span>
+    </div>
+    <div class="stat-card accent">
+      <span class="stat-label">Processing</span>
+      <span class="stat-value" id="stat-processing">—</span>
+    </div>
+    <div class="stat-card success">
+      <span class="stat-label">Ready</span>
+      <span class="stat-value" id="stat-ready">—</span>
+    </div>
+    <div class="stat-card danger">
+      <span class="stat-label">Errors</span>
+      <span class="stat-value" id="stat-error">—</span>
+    </div>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script src="/static/js/overview.js"></script>
+{% endblock %}

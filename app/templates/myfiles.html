@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}My Files{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <h1>My Files</h1>
+    <p class="muted">Upload videos and track them through processing.</p>
+  </header>
+
+  <section class="upload-card">
+    <div class="upload-row">
+      <div class="upload-drop" id="drop-zone">
+        <p><strong>Drag & drop videos or a folder</strong> here, or choose files below.</p>
+        <div class="upload-buttons">
+          <label class="btn">
+            Choose files
+            <input type="file" id="file-input" multiple accept="video/*" hidden />
+          </label>
+          <label class="btn btn-outline">
+            Choose folder
+            <input type="file" id="folder-input" multiple webkitdirectory directory hidden />
+          </label>
+        </div>
+      </div>
+    </div>
+    <div id="upload-progress-list" class="upload-progress-list"></div>
+  </section>
+
+  <section class="table-toolbar">
+    <input type="text" id="search-input" placeholder="Search by title…" />
+    <select id="status-filter">
+      <option value="">All statuses</option>
+      <option value="PROCESSING">Processing</option>
+      <option value="READY">Ready</option>
+      <option value="ERROR">Error</option>
+    </select>
+  </section>
+
+  <section class="table-wrap">
+    <table class="files-table">
+      <thead>
+        <tr>
+          <th>Thumbnail</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Mapping</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="files-tbody">
+        <tr><td colspan="5" class="muted">Loading…</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="pagination" id="pagination"></section>
+
+  <div class="modal-backdrop" id="player-modal-backdrop">
+    <div class="modal">
+      <button class="modal-close" id="player-close">&times;</button>
+      <video id="player-video" controls style="width:100%;max-height:70vh;"></video>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="edit-modal-backdrop">
+    <div class="modal">
+      <button class="modal-close" id="edit-close">&times;</button>
+      <h2>Edit video</h2>
+      <label>Title</label>
+      <input type="text" id="edit-title-input" />
+      <label>Folder</label>
+      <input type="text" id="edit-folder-input" />
+      <button class="btn" id="edit-save-btn">Save changes</button>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script src="/static/js/myfiles.js"></script>
+{% endblock %}

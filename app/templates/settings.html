@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+  <header class="page-header">
+    <h1>Settings</h1>
+    <p class="muted">Configure the Telegram auto-posting bot.</p>
+  </header>
+
+  <section class="settings-card">
+    <h2>Bot token</h2>
+    <p class="muted">Create a bot with @BotFather, then make it an admin on each channel below.</p>
+    <div class="form-row">
+      <input type="password" id="bot-token-input" placeholder="123456789:AA...bot-token" />
+      <button class="btn" id="save-bot-token-btn">Save token</button>
+    </div>
+    <p id="bot-token-status" class="muted small"></p>
+  </section>
+
+  <section class="settings-card">
+    <h2>Channels</h2>
+    <p class="muted">Add each channel you want the bot to auto-post ready videos to.</p>
+
+    <div class="channel-form">
+      <input type="text" id="channel-name-input" placeholder="Display name (e.g. Main Channel)" />
+      <input type="text" id="channel-id-input" placeholder="Channel ID (e.g. -1001234567890)" />
+      <select id="channel-interval-input">
+        <option value="0">Post now (manual only)</option>
+        <option value="15">Every 15 min</option>
+        <option value="30">Every 30 min</option>
+        <option value="60">Every 1 hour</option>
+        <option value="120">Every 2 hours</option>
+        <option value="360">Every 6 hours</option>
+        <option value="720">Every 12 hours</option>
+        <option value="1440">Every 24 hours</option>
+      </select>
+      <input type="number" id="channel-quantity-input" min="1" value="1" placeholder="Videos per post batch" />
+      <button class="btn" id="add-channel-btn">Add channel</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="files-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Channel ID</th>
+            <th>Interval</th>
+            <th>Qty / batch</th>
+            <th>Last posted</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="channels-tbody">
+          <tr><td colspan="7" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script src="/static/js/settings.js"></script>
+{% endblock %}

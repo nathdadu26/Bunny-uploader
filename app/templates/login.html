@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="login-body">
+  <form class="login-card" method="post" action="/dashboard/login">
+    <div class="brand" style="margin-bottom: 28px;">
+      <span class="brand-mark">B</span>
+      <span class="brand-name">Videocore</span>
+    </div>
+    <h1>Sign in</h1>
+    <p class="muted">Access the video pipeline dashboard.</p>
+    {% if error %}<p class="error-text">{{ error }}</p>{% endif %}
+    <label>Username</label>
+    <input type="text" name="username" required autofocus />
+    <label>Password</label>
+    <input type="password" name="password" required />
+    <button type="submit">Log in</button>
+  </form>
+</body>
+</html>
