@@ -67,7 +67,7 @@ body {
 .muted.small { font-size: 12px; }
 
 /* Stats */
-.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
 .stat-card {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 20px;
@@ -78,6 +78,31 @@ body {
 .stat-card.accent .stat-value { color: var(--accent); }
 .stat-card.success .stat-value { color: var(--success); }
 .stat-card.danger .stat-value { color: var(--danger); }
+
+/* Terminal */
+.terminal-card {
+  background: #0a0c10; border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden;
+}
+.terminal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--panel-2); border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.terminal-actions { display: flex; align-items: center; gap: 12px; font-weight: 400; }
+.terminal-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.terminal-actions .btn-outline { padding: 4px 10px; font-size: 12px; }
+.terminal-body {
+  height: 320px; overflow-y: auto; padding: 12px 16px;
+  font-family: "SF Mono", "Fira Code", Consolas, monospace; font-size: 12.5px; line-height: 1.7;
+}
+.terminal-line { white-space: pre-wrap; word-break: break-word; }
+.terminal-line .ts { color: #565f73; margin-right: 8px; }
+.terminal-line .tag { color: #7c8dff; margin-right: 6px; }
+.terminal-line.level-info { color: #d3d7e0; }
+.terminal-line.level-success { color: var(--success); }
+.terminal-line.level-warn { color: #ffc107; }
+.terminal-line.level-error { color: var(--danger); font-weight: 600; }
 
 /* Upload */
 .upload-card {

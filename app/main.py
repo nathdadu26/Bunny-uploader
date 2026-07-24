@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from app.database import ensure_indexes
 from app.core.scheduler import start_scheduler, scheduler
 from app.core.keepalive import register_keepalive_job
-from app.routes import upload, files, overview, settings as settings_routes, dashboard
+from app.routes import upload, files, overview, settings as settings_routes, dashboard, logs
 
 
 @asynccontextmanager
@@ -27,6 +27,7 @@ app.include_router(files.router)
 app.include_router(overview.router)
 app.include_router(settings_routes.router)
 app.include_router(dashboard.router)
+app.include_router(logs.router)
 
 
 @app.get("/")

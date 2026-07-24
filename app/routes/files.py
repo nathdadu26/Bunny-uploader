@@ -24,6 +24,8 @@ def _serialize(doc: dict) -> dict:
         "views": doc.get("views", 0),
         "created_at": doc.get("created_at"),
         "updated_at": doc.get("updated_at"),
+        "error_reason": doc.get("error_reason"),
+        "error_stage": doc.get("error_stage"),
     }
 
 

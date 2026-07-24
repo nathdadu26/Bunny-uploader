@@ -32,6 +32,18 @@
       <span class="stat-value" id="stat-error">—</span>
     </div>
   </section>
+  <section class="terminal-card">
+    <div class="terminal-header">
+      <span>Live pipeline log</span>
+      <div class="terminal-actions">
+        <label class="terminal-toggle"><input type="checkbox" id="terminal-autoscroll" checked /> Auto-scroll</label>
+        <button class="btn btn-outline" id="terminal-clear-btn">Clear</button>
+      </div>
+    </div>
+    <div class="terminal-body" id="terminal-body">
+      <div class="terminal-line muted">Waiting for events…</div>
+    </div>
+  </section>
 {% endblock %}
 {% block scripts %}
   <script src="/static/js/overview.js"></script>

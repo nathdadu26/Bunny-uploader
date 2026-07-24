@@ -9,6 +9,7 @@ from typing import List, Optional
 from app.database import videos_collection
 from app.core import bunny, naming
 from app.core.pipeline import run_pipeline
+from app.core.logs import log_event
 
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
@@ -59,10 +60,11 @@ async def upload_videos(
             with open(tmp_path, "wb") as out:
                 shutil.copyfileobj(upload_file.file, out)
 
+            await log_event(f"Uploading '{custom_filename}' to Bunny Stream...", mapping=mapping)
             bunny_video = await bunny.create_video(title=custom_filename)
             bunny_video_id = bunny_video["guid"]
-
             await bunny.upload_video_file(bunny_video_id, tmp_path)
+            await log_event(f"Upload to Bunny Stream complete (video id {bunny_video_id})", mapping=mapping)
 
             now_iso = datetime.now(timezone.utc).isoformat()
             doc = {
@@ -96,6 +98,17 @@ async def upload_videos(
                 "mapping": mapping,
                 "status": "PROCESSING",
             })
+        except Exception as exc:  # noqa: BLE001
+            # A failure here (bad Bunny credentials, network error, etc.)
+            # used to bubble up as an unhandled 500 with nothing logged
+            # anywhere. Now it's recorded in the realtime log feed and
+            # reported back per-file so the rest of the batch still
+            # uploads.
+            await log_event(
+                f"Upload failed for '{custom_filename}'",
+                level="error", mapping=mapping, exc=exc,
+            )
+            results.append({"file": custom_filename, "error": str(exc)})
         finally:
             os.remove(tmp_path)
 

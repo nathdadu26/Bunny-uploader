@@ -6,8 +6,9 @@ let currentSearch = "";
 let currentStatus = "";
 let pollTimer = null;
 
-function statusPill(status) {
-  return `<span class="status-pill status-${status}">${status}</span>`;
+function statusPill(status, errorReason) {
+  const title = status === "ERROR" && errorReason ? ` title="${errorReason.replace(/"/g, "&quot;")}"` : "";
+  return `<span class="status-pill status-${status}"${title}>${status}</span>`;
 }
 
 function renderRow(item) {
@@ -19,7 +20,7 @@ function renderRow(item) {
     <tr data-id="${item.id}">
       <td class="thumb-cell">${thumb}</td>
       <td>${item.title || "<span class='muted'>Untitled</span>"}</td>
-      <td>${statusPill(item.status)}</td>
+      <td>${statusPill(item.status, item.error_reason)}</td>
       <td>${item.mapping}</td>
       <td>
         <button class="action-icon" title="Edit" data-action="edit">✎</button>

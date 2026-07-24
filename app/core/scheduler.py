@@ -5,6 +5,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.database import channels_collection, videos_collection
 from app.core import telegram
+from app.core.logs import log_event
 
 logger = logging.getLogger("scheduler")
 scheduler = AsyncIOScheduler()
@@ -37,6 +38,10 @@ async def post_batch_to_channel(channel: dict, quantity: int | None = None):
     posted = 0
     async for video in cursor:
         try:
+            await log_event(
+                f"Posting to channel '{channel.get('name')}'...",
+                mapping=video.get("mapping"),
+            )
             await telegram.post_video_to_channel(
                 channel_id=channel_id,
                 thumbnail_url=video.get("thumbnail") or "",
@@ -47,8 +52,16 @@ async def post_batch_to_channel(channel: dict, quantity: int | None = None):
                 {"_id": video["_id"]},
                 {"$addToSet": {"telegram_posted_channels": channel_id}},
             )
+            await log_event(
+                f"Posted to channel '{channel.get('name')}'",
+                level="success", mapping=video.get("mapping"),
+            )
             posted += 1
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
+            await log_event(
+                f"Failed to post to channel '{channel.get('name')}'",
+                level="error", mapping=video.get("mapping"), exc=exc,
+            )
             logger.exception("Failed to post video %s to channel %s", video.get("mapping"), channel_id)
 
     await channels_collection.update_one(
