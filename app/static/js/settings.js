@@ -3,33 +3,58 @@ async function loadBotToken() {
   const data = await res.json();
   if (data.bot_token) {
     document.getElementById("bot-token-input").value = data.bot_token;
-    document.getElementById("bot-token-status").textContent = "Bot token is configured.";
+    document.getElementById("bot-token-status").textContent = data.webhook_configured
+      ? "Bot token is configured and the webhook is active."
+      : "Bot token is configured, but the webhook isn't set up yet (needs PUBLIC_URL in the environment).";
   }
+  document.getElementById("stat-bot-name").textContent = data.bot_name
+    ? `${data.bot_name}${data.bot_username ? " (@" + data.bot_username + ")" : ""}`
+    : "—";
+}
+
+async function loadBotStats() {
+  const res = await fetch("/api/settings/bot/stats");
+  const data = await res.json();
+  document.getElementById("stat-total-channels").textContent = data.total_channels;
+  document.getElementById("stat-total-posts").textContent = data.total_posts;
+  document.getElementById("stat-total-failed").textContent = data.total_failed_posts;
 }
 
 document.getElementById("save-bot-token-btn").addEventListener("click", async () => {
   const token = document.getElementById("bot-token-input").value.trim();
   if (!token) return;
-  await fetch("/api/settings/bot", {
+  const status = document.getElementById("bot-token-status");
+  status.textContent = "Saving…";
+  const res = await fetch("/api/settings/bot", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ bot_token: token }),
   });
-  document.getElementById("bot-token-status").textContent = "Saved.";
+  if (!res.ok) {
+    const err = await res.json();
+    status.textContent = err.detail || "Failed to save token.";
+    return;
+  }
+  status.textContent = "Saved.";
+  loadBotToken();
+  loadBotStats();
 });
 
-function intervalLabel(minutes) {
-  const map = {
-    0: "Manual (post now)",
-    15: "Every 15 min",
-    30: "Every 30 min",
-    60: "Every 1 hour",
-    120: "Every 2 hours",
-    360: "Every 6 hours",
-    720: "Every 12 hours",
-    1440: "Every 24 hours",
-  };
-  return map[minutes] || `Every ${minutes} min`;
+const INTERVAL_OPTIONS = [
+  [0, "Manual (post now)"],
+  [15, "Every 15 min"],
+  [30, "Every 30 min"],
+  [60, "Every 1 hour"],
+  [120, "Every 2 hours"],
+  [360, "Every 6 hours"],
+  [720, "Every 12 hours"],
+  [1440, "Every 24 hours"],
+];
+
+function intervalSelectHtml(current) {
+  return INTERVAL_OPTIONS.map(
+    ([val, label]) => `<option value="${val}" ${val === current ? "selected" : ""}>${label}</option>`
+  ).join("");
 }
 
 function renderChannelRow(c) {
@@ -37,14 +62,13 @@ function renderChannelRow(c) {
     <tr data-id="${c.id}">
       <td>${c.name}</td>
       <td>${c.channel_id}</td>
-      <td>${intervalLabel(c.interval_minutes)}</td>
-      <td>${c.post_quantity}</td>
+      <td><select class="channel-interval-select">${intervalSelectHtml(c.interval_minutes)}</select></td>
+      <td><input type="number" min="1" class="channel-qty-input" value="${c.post_quantity}" style="width:64px;" /></td>
+      <td>${c.posted_count} / ${c.failed_count}</td>
       <td class="muted">${c.last_posted_at ? new Date(c.last_posted_at).toLocaleString() : "Never"}</td>
-      <td>${c.active ? "Yes" : "No"}</td>
+      <td><input type="checkbox" class="channel-active-checkbox" ${c.active ? "checked" : ""} /></td>
       <td>
-        <button class="action-icon" data-action="post-now" title="Post now">▶</button>
-        <button class="action-icon" data-action="verify" title="Verify bot is admin">✔</button>
-        <button class="action-icon danger" data-action="delete" title="Delete">🗑</button>
+        <button class="action-icon danger" data-action="remove" title="Remove channel">🗑</button>
       </td>
     </tr>
   `;
@@ -55,62 +79,50 @@ async function loadChannels() {
   const data = await res.json();
   const tbody = document.getElementById("channels-tbody");
   if (!data.items.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="muted">No channels added yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="muted">No channels yet — forward a message from a channel to the bot to add one.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.items.map(renderChannelRow).join("");
-  tbody.querySelectorAll("[data-action]").forEach((btn) => {
-    const id = btn.closest("tr").dataset.id;
-    btn.addEventListener("click", () => handleChannelAction(btn.dataset.action, id));
+  attachChannelRowHandlers();
+}
+
+function attachChannelRowHandlers() {
+  document.querySelectorAll("#channels-tbody tr").forEach((row) => {
+    const id = row.dataset.id;
+    if (!id) return;
+
+    row.querySelector(".channel-interval-select").addEventListener("change", (e) => {
+      patchChannel(id, { interval_minutes: parseInt(e.target.value, 10) });
+    });
+
+    row.querySelector(".channel-qty-input").addEventListener("change", (e) => {
+      const qty = parseInt(e.target.value, 10) || 1;
+      patchChannel(id, { post_quantity: qty });
+    });
+
+    row.querySelector(".channel-active-checkbox").addEventListener("change", (e) => {
+      patchChannel(id, { active: e.target.checked });
+    });
+
+    row.querySelector('[data-action="remove"]').addEventListener("click", async () => {
+      if (!confirm("Remove this channel? It will stop receiving auto-posts.")) return;
+      await fetch(`/api/settings/channels/${id}`, { method: "DELETE" });
+      loadChannels();
+      loadBotStats();
+    });
   });
 }
 
-async function handleChannelAction(action, id) {
-  if (action === "delete") {
-    if (!confirm("Remove this channel?")) return;
-    await fetch(`/api/settings/channels/${id}`, { method: "DELETE" });
-    loadChannels();
-  } else if (action === "post-now") {
-    const res = await fetch(`/api/settings/channels/${id}/post-now`, { method: "POST" });
-    const data = await res.json();
-    alert(`Posted ${data.posted} video(s).`);
-    loadChannels();
-  } else if (action === "verify") {
-    const res = await fetch(`/api/settings/channels/${id}/verify-admin`);
-    const data = await res.json();
-    const status = data.result && data.result.status;
-    alert(status ? `Bot status in this channel: ${status}` : "Could not verify — check bot token/channel ID.");
-  }
-}
-
-document.getElementById("add-channel-btn").addEventListener("click", async () => {
-  const name = document.getElementById("channel-name-input").value.trim();
-  const channel_id = document.getElementById("channel-id-input").value.trim();
-  const interval_minutes = parseInt(document.getElementById("channel-interval-input").value, 10);
-  const post_quantity = parseInt(document.getElementById("channel-quantity-input").value, 10) || 1;
-
-  if (!name || !channel_id) {
-    alert("Name and Channel ID are required.");
-    return;
-  }
-
-  const res = await fetch("/api/settings/channels", {
-    method: "POST",
+async function patchChannel(id, updates) {
+  await fetch(`/api/settings/channels/${id}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, channel_id, interval_minutes, post_quantity, active: true }),
+    body: JSON.stringify(updates),
   });
-
-  if (!res.ok) {
-    const err = await res.json();
-    alert(err.detail || "Failed to add channel");
-    return;
-  }
-
-  document.getElementById("channel-name-input").value = "";
-  document.getElementById("channel-id-input").value = "";
-  document.getElementById("channel-quantity-input").value = "1";
-  loadChannels();
-});
+}
 
 loadBotToken();
+loadBotStats();
 loadChannels();
+setInterval(loadChannels, 15000);
+setInterval(loadBotStats, 15000);

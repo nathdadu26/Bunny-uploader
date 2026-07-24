@@ -7,7 +7,15 @@ from fastapi.responses import RedirectResponse
 from app.database import ensure_indexes
 from app.core.scheduler import start_scheduler, scheduler
 from app.core.keepalive import register_keepalive_job
-from app.routes import upload, files, overview, settings as settings_routes, dashboard, logs
+from app.routes import (
+    upload,
+    files,
+    overview,
+    settings as settings_routes,
+    dashboard,
+    logs,
+    telegram_webhook,
+)
 
 
 @asynccontextmanager
@@ -15,6 +23,7 @@ async def lifespan(app: FastAPI):
     await ensure_indexes()
     start_scheduler()
     register_keepalive_job(scheduler)
+    await settings_routes._setup_webhook_if_possible()
     yield
 
 
@@ -28,6 +37,7 @@ app.include_router(overview.router)
 app.include_router(settings_routes.router)
 app.include_router(dashboard.router)
 app.include_router(logs.router)
+app.include_router(telegram_webhook.router)
 
 
 @app.get("/")

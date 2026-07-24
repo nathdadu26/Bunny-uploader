@@ -8,34 +8,40 @@
 
   <section class="settings-card">
     <h2>Bot token</h2>
-    <p class="muted">Create a bot with @BotFather, then make it an admin on each channel below.</p>
+    <p class="muted">Create a bot with @BotFather, paste its token below, then add channels by forwarding a message from each one to the bot.</p>
     <div class="form-row">
       <input type="password" id="bot-token-input" placeholder="123456789:AA...bot-token" />
       <button class="btn" id="save-bot-token-btn">Save token</button>
     </div>
     <p id="bot-token-status" class="muted small"></p>
+
+    <div class="stat-grid" style="margin-top:18px;">
+      <div class="stat-card">
+        <span class="stat-label">Bot name</span>
+        <span class="stat-value" id="stat-bot-name" style="font-size:18px;">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total channels</span>
+        <span class="stat-value" id="stat-total-channels">—</span>
+      </div>
+      <div class="stat-card success">
+        <span class="stat-label">Total posts</span>
+        <span class="stat-value" id="stat-total-posts">—</span>
+      </div>
+      <div class="stat-card danger">
+        <span class="stat-label">Failed posts</span>
+        <span class="stat-value" id="stat-total-failed">—</span>
+      </div>
+    </div>
   </section>
 
   <section class="settings-card">
     <h2>Channels</h2>
-    <p class="muted">Add each channel you want the bot to auto-post ready videos to.</p>
-
-    <div class="channel-form">
-      <input type="text" id="channel-name-input" placeholder="Display name (e.g. Main Channel)" />
-      <input type="text" id="channel-id-input" placeholder="Channel ID (e.g. -1001234567890)" />
-      <select id="channel-interval-input">
-        <option value="0">Post now (manual only)</option>
-        <option value="15">Every 15 min</option>
-        <option value="30">Every 30 min</option>
-        <option value="60">Every 1 hour</option>
-        <option value="120">Every 2 hours</option>
-        <option value="360">Every 6 hours</option>
-        <option value="720">Every 12 hours</option>
-        <option value="1440">Every 24 hours</option>
-      </select>
-      <input type="number" id="channel-quantity-input" min="1" value="1" placeholder="Videos per post batch" />
-      <button class="btn" id="add-channel-btn">Add channel</button>
-    </div>
+    <p class="muted">
+      To add a channel: open Telegram, forward any message from that channel to this bot in a private
+      chat. The bot will reply "Channel added" and it will show up here automatically. Make sure the
+      bot is an admin in the channel so it can post.
+    </p>
 
     <div class="table-wrap">
       <table class="files-table">
@@ -45,13 +51,14 @@
             <th>Channel ID</th>
             <th>Interval</th>
             <th>Qty / batch</th>
+            <th>Posted / Failed</th>
             <th>Last posted</th>
             <th>Active</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="channels-tbody">
-          <tr><td colspan="7" class="muted">Loading…</td></tr>
+          <tr><td colspan="8" class="muted">Loading…</td></tr>
         </tbody>
       </table>
     </div>

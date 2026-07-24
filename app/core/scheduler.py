@@ -36,6 +36,7 @@ async def post_batch_to_channel(channel: dict, quantity: int | None = None):
     ).sort("created_at", 1).limit(qty)
 
     posted = 0
+    failed = 0
     async for video in cursor:
         try:
             await log_event(
@@ -63,11 +64,20 @@ async def post_batch_to_channel(channel: dict, quantity: int | None = None):
                 level="error", mapping=video.get("mapping"), exc=exc,
             )
             logger.exception("Failed to post video %s to channel %s", video.get("mapping"), channel_id)
+            failed += 1
 
-    await channels_collection.update_one(
-        {"_id": channel["_id"]},
-        {"$set": {"last_posted_at": datetime.now(timezone.utc).isoformat()}},
-    )
+    update_fields = {"last_posted_at": datetime.now(timezone.utc).isoformat()}
+    inc_fields = {}
+    if posted:
+        inc_fields["posted_count"] = posted
+    if failed:
+        inc_fields["failed_count"] = failed
+
+    update_op = {"$set": update_fields}
+    if inc_fields:
+        update_op["$inc"] = inc_fields
+
+    await channels_collection.update_one({"_id": channel["_id"]}, update_op)
     return posted
 
 

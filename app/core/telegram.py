@@ -18,6 +18,40 @@ def build_streaming_link(mapping: str) -> str:
     return f"{domain}/ad/{mapping}"
 
 
+async def get_me() -> dict:
+    """Returns the bot's own identity ({'id', 'first_name', 'username', ...})."""
+    token = await get_bot_token()
+    if not token:
+        raise RuntimeError("Telegram bot token is not configured")
+    url = f"https://api.telegram.org/bot{token}/getMe"
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        return resp.json()["result"]
+
+
+async def send_message(chat_id: str | int, text: str) -> dict:
+    token = await get_bot_token()
+    if not token:
+        raise RuntimeError("Telegram bot token is not configured")
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(url, json={"chat_id": chat_id, "text": text})
+        resp.raise_for_status()
+        return resp.json()
+
+
+async def set_webhook(webhook_url: str) -> dict:
+    token = await get_bot_token()
+    if not token:
+        raise RuntimeError("Telegram bot token is not configured")
+    url = f"https://api.telegram.org/bot{token}/setWebhook"
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.post(url, json={"url": webhook_url, "allowed_updates": ["message"]})
+        resp.raise_for_status()
+        return resp.json()
+
+
 async def post_video_to_channel(channel_id: str, thumbnail_url: str, title: str, mapping: str) -> dict:
     token = await get_bot_token()
     if not token:

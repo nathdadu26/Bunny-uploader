@@ -93,19 +93,37 @@ Open `http://localhost:8000/dashboard` — default login is
 
 ## 3. Telegram auto-posting
 
-- Settings page lets you save/replace the bot token and add channels.
-- For each channel you set: display name, numeric/`-100…` channel ID, a
-  posting interval (`now`/manual, 15 min, 30 min, 1h, 2h, 6h, 12h, 24h),
-  and how many videos to post per batch.
+- **Adding a channel**: there's no manual "add channel" form. In Telegram,
+  forward any message from the target channel to the bot in a private
+  chat. The bot reads the forwarded message's origin, registers the
+  channel in MongoDB (default: manual/interval `0`, quantity `1`,
+  active), and replies "✅ Channel added: ...". This requires:
+  - The bot token saved in Settings (or `TELEGRAM_BOT_TOKEN` in env).
+  - `PUBLIC_URL` set in the environment, so the app can register its
+    Telegram **webhook** at `{PUBLIC_URL}/api/telegram/webhook`. This
+    happens automatically on startup and whenever you save a new bot
+    token; you can also trigger it manually via
+    `POST /api/settings/bot/setup-webhook`.
+  - The forwarded message must show its origin — if the channel hides
+    "forwarded from" info, Telegram won't include it and the bot will
+    reply asking you to unhide it or try a different message.
+- Once a channel appears in the Settings table, you can edit its
+  **interval** (manual/15min/30min/1h/2h/6h/12h/24h), **quantity per
+  batch**, and **active** toggle directly inline — changes save
+  immediately. The only action button is **remove**, which deletes the
+  channel (name, id, everything) from MongoDB.
 - A background scheduler (`APScheduler`, checked every minute) posts the
   oldest `READY` videos that haven't yet been posted to a given channel,
-  once that channel's interval has elapsed. Interval `0` ("post now")
-  never auto-fires — use the ▶ button on that channel's row instead.
+  once that channel's interval has elapsed. Interval `0` ("manual") never
+  auto-fires — set a real interval from the table if you want it to post
+  on its own.
 - Each post is `sendPhoto` with the video's thumbnail and a caption
   containing `STREAMING_DOMAIN/ad/{mapping}`.
 - **You must add the bot as an admin to each channel yourself** in
-  Telegram; the ✔ "verify" button in Settings calls `getChatMember` to
-  confirm the bot's current status in that channel.
+  Telegram so it's able to post.
+- The Settings page's top card shows: bot name (fetched via Telegram's
+  `getMe`), total channels, total posts, and total failed posts — each
+  channel also tracks its own `posted_count` / `failed_count`.
 
 ## 4. Dashboard pages
 
