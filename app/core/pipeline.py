@@ -128,7 +128,20 @@ async def run_pipeline(mongo_id, bunny_video_id: str, mapping: str, display_titl
         shutil.rmtree(work_dir, ignore_errors=True)
         return
 
-    # ---------------- Stage 5: save to MongoDB, mark READY ----------------
+    # ---------------- Stage 5: delete from Bunny Stream (now safe on R2) ----------------
+    try:
+        await log_event("Deleting video from Bunny Stream (already safe on R2)...", mapping=mapping)
+        await bunny.delete_video(bunny_video_id)
+        await log_event("Deleted from Bunny Stream", mapping=mapping)
+    except Exception as exc:  # noqa: BLE001
+        # Non-fatal: the video is already fully saved to R2 + Mongo, so we
+        # just warn instead of marking the whole pipeline as ERROR.
+        await log_event(
+            "Could not delete video from Bunny Stream (it will remain there, but R2/DB are already complete)",
+            level="warn", mapping=mapping, exc=exc,
+        )
+
+    # ---------------- Stage 6: save to MongoDB, mark READY ----------------
     try:
         await _set_status(
             mongo_id,

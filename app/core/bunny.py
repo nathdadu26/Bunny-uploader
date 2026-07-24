@@ -87,9 +87,14 @@ def build_zip_download_url(video_id: str) -> str:
 async def download_output_zip(video_id: str, dest_path: str) -> str:
     """Streams the finished video's full output zip to dest_path on disk."""
     url = build_zip_download_url(video_id)
+    headers = {"AccessKey": settings.BUNNY_STORAGE_PASSWORD}
     async with httpx.AsyncClient(timeout=None) as client:
-        async with client.stream("GET", url) as resp:
-            resp.raise_for_status()
+        async with client.stream("GET", url, headers=headers) as resp:
+            if resp.status_code >= 400:
+                body = await resp.aread()
+                raise RuntimeError(
+                    f"Bunny storage returned {resp.status_code} for {url}: {body[:300].decode(errors='replace')}"
+                )
             with open(dest_path, "wb") as f:
                 async for chunk in resp.aiter_bytes(chunk_size=1024 * 1024):
                     f.write(chunk)

@@ -14,9 +14,9 @@ def generate_custom_filename(extension: str) -> str:
     return f"TG-@atoz_links-VID_{stamp}{ext}"
 
 
-def generate_mapping(length: int = 8) -> str:
+def generate_mapping(length: int = 12) -> str:
     """Short random slug used to build the public streaming link: STREAMING_DOMAIN/ad/{mapping}"""
-    alphabet = string.ascii_lowercase + string.digits
+    alphabet = string.ascii_lowercase + string.digits + "_"
     return "".join(random.choices(alphabet, k=length))
 
 
